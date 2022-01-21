@@ -2,6 +2,7 @@ from logging import currentframe
 import sys
 import csv
 from time import time
+from unittest.mock import seal
 from winreg import REG_FULL_RESOURCE_DESCRIPTOR
 from flask import Flask, request, jsonify, render_template
 from random import randint
@@ -162,6 +163,46 @@ def access_key_old():
             print(i['UserName'])
             print("*"*80)
 
+# function to find out user whose MFA is not enabled
+def mfa_enabled():
+
+    print("Users whose MFA is not enabled - ")
+    result = None
+
+    client = boto3.client('iam')
+    response = client.list_users()
+    result = response['Users']
+
+    for user in result:
+        MFA = client.list_mfa_devices(UserName=user['UserName'])
+
+        MFA_devices = MFA['MFADevices']
+
+        if not MFA_devices:
+            print(user['UserName'])
+
+
+# function to check for users who have adminstration policy attached to them
+def check_adminstration_policy():
+
+    print("Users who have adminstration access - ")
+    result = None
+
+    client = boto3.client('iam')
+    response = client.list_users()
+    result = response['Users']
+
+    for i in result:
+        list3 = []
+        list1 = list_user_policies(username=i['UserName'])
+        list2 = list_attached_user_policies(username=i['UserName'])
+
+        list3 = list1 + list2
+
+        for search in list3:
+            # print(search)
+            if (search == 'AdministratorAccess'):
+                print(i['UserName'])
 
 
 # main function
@@ -174,7 +215,11 @@ def main():
 
     # list__policies()
 
-    access_key_old()
+    # access_key_old()
+        
+    # mfa_enabled()
 
+    check_adminstration_policy()
+    
 if __name__ == "__main__":
     main()
