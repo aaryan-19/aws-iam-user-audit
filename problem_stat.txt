@@ -6,6 +6,6 @@ Create a flask application to manage the AWS IAM users. It should have the below
     5. It should filter the policies based on the services it is using. For eg: ec2 related policies, ssm related policies, etc.
     6. Generate the list of user whose password or access keys are older than x no of days.
     7. List all the users who doesnt have MFA enabled.
-    8. List all the users who have Administrator policy attached to them 
+    8. List all the users who have Adminiastrator policy attached to them 
 
 Application should have the backend and front end created. It doesnt require DB to store the data for now.

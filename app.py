@@ -1,14 +1,8 @@
-from logging import currentframe
-import sys
 import csv
-from time import time
-from unittest.mock import seal
-from winreg import REG_FULL_RESOURCE_DESCRIPTOR
 from flask import Flask, request, jsonify, render_template
 from random import randint
 import boto3
 from datetime import datetime
-import pytz
 from csv import DictWriter
 
 # function to list users
@@ -27,7 +21,6 @@ def list_access_keys(username):
 
     result = None
     
-
     client = boto3.client('iam')
     response = client.list_access_keys(UserName=username)
     result = response['AccessKeyMetadata']
@@ -149,6 +142,7 @@ def access_key_old():
     x = int(input("Enter no. of days - "))
 
     result = None
+    users = []
 
     client = boto3.client('iam')
     response = client.list_users()
@@ -160,8 +154,11 @@ def access_key_old():
         # print(diff)
 
         if (diff > x):
+            users.append({'name': i['UserName']})
             print(i['UserName'])
             print("*"*80)
+    
+    return users
 
 # function to find out user whose MFA is not enabled
 def mfa_enabled():
@@ -180,7 +177,6 @@ def mfa_enabled():
 
         if not MFA_devices:
             print(user['UserName'])
-
 
 # function to check for users who have adminstration policy attached to them
 def check_adminstration_policy():
@@ -207,17 +203,18 @@ def check_adminstration_policy():
 
 # main function
 def main():
-    # result = list_users()
+    result = list_users()
+    print(result)
 
-    # diff = list_users_age()
+    diff = list_users_age()
         
-    # generate_csv()
+    generate_csv()
 
-    # list__policies()
+    list__policies()
 
-    # access_key_old()
+    access_key_old()
         
-    # mfa_enabled()
+    mfa_enabled()
 
     check_adminstration_policy()
     
