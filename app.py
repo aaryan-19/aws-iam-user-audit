@@ -4,8 +4,16 @@ from random import randint
 import boto3
 from datetime import datetime
 from csv import DictWriter
+import json
+
+app = Flask("aws-users-audit")
+
+@app.route('/')
+def hello_world():
+   return 'Hello World'
 
 # function to list users
+@app.route('/list-users')
 def list_users():
 
     result = None
@@ -14,7 +22,7 @@ def list_users():
     response = client.list_users()
     result = response['Users']
 
-    return result
+    return json.dumps(result, default=str)
 
 # function to list access key age
 def list_access_keys(username):
@@ -38,26 +46,36 @@ def list_access_keys(username):
         return diff.days
 
 # function to list user's age and user's secret age
+@app.route('/list-users-age')
 def list_users_age():
 
     result = None
+    final_result = []
 
     client = boto3.client('iam')
     response = client.list_users()
     result = response['Users']
 
     for i in result:
-        print(i['UserName'])
+        # print(i['UserName'])
         join_date = i['CreateDate']  
 
         tz_info = join_date.tzinfo
 
-        diff = datetime.now(tz_info)-join_date
-        print(f"User: {i['UserName']} Age: {diff.days}")
-        print("secret credentials age - ")
+        diff_user = datetime.now(tz_info)-join_date
+        # print(f"User: {i['UserName']} Age: {diff_user.days}")
+        # print("secret credentials age - ")
         diff = list_access_keys(username=i['UserName'])
-        print(diff)
-        print("*"*80)
+        # print(diff)
+        # print("*"*80)
+        final_result.append({
+            'UserName': i['UserName'],
+            'CreateDate': i['CreateDate'],
+            'Age': diff_user.days,
+            'AccessKeysAge': diff
+        })
+    
+    return json.dumps(final_result, default=str)
 
 # generate report
 def generate_csv():
@@ -88,6 +106,7 @@ def generate_csv():
     f.close()
 
 # print policies
+# @app.route('/list-user-policies')
 def list_user_policies(username):
 
     # print("UserName = ",username)
@@ -98,6 +117,7 @@ def list_user_policies(username):
     # print(response)
     result = response['PolicyNames']
 
+    # return json.dumps(result,default=str)
     return result
 
 # function to get user's attached policies
@@ -116,17 +136,18 @@ def list_attached_user_policies(username):
     return list1
 
 # function to list user's IAM policies and make a list
+@app.route('/list-policies')
 def list__policies():
 
     result = None
-
+    final_result = []
     client = boto3.client('iam')
     response = client.list_users()
     result = response['Users']
 
     for i in result:
         list3 = []
-        print(i['UserName'])
+        # print(i['UserName'])
         list1 = list_user_policies(username=i['UserName'])
         list2 = list_attached_user_policies(username=i['UserName'])
 
@@ -134,12 +155,22 @@ def list__policies():
         
         for policy in list3:
             print(policy)
-        print("*"*80)
+
+        final_result.append({
+            'UserName': i['UserName'],
+            'Policy List': list3
+        })        
+        # print("*"*80)
+    return json.dumps(final_result,default=str)
         
 # function to find user details whose access key is older than x days
-def access_key_old():
+@app.route('/access-key-old/<days>')
+def access_key_old(days):
 
-    x = int(input("Enter no. of days - "))
+    # x = int(input("Enter no. of days - "))
+
+    x = int(days)
+    # final_result = []
 
     result = None
     users = []
@@ -155,16 +186,20 @@ def access_key_old():
 
         if (diff > x):
             users.append({'name': i['UserName']})
-            print(i['UserName'])
-            print("*"*80)
+            # print(i['UserName'])
+            # print("*"*80)
+
+            
     
-    return users
+    return json.dumps(users,default=str)
 
 # function to find out user whose MFA is not enabled
+@app.route('/mfa-enabled')
 def mfa_enabled():
 
-    print("Users whose MFA is not enabled - ")
+    # print("Users whose MFA is not enabled - ")
     result = None
+    final_result = []
 
     client = boto3.client('iam')
     response = client.list_users()
@@ -176,13 +211,21 @@ def mfa_enabled():
         MFA_devices = MFA['MFADevices']
 
         if not MFA_devices:
-            print(user['UserName'])
+            # print(user['UserName'])
+            final_result.append({
+            'UserName': user['UserName'],
+            'MFA': "Disabled"
+            })     
+    
+    return json.dumps(final_result,default=str)
 
 # function to check for users who have adminstration policy attached to them
+@app.route('/check-admin-policy')
 def check_adminstration_policy():
 
-    print("Users who have adminstration access - ")
+    # print("Users who have adminstration access - ")
     result = None
+    final_result = []
 
     client = boto3.client('iam')
     response = client.list_users()
@@ -198,25 +241,37 @@ def check_adminstration_policy():
         for search in list3:
             # print(search)
             if (search == 'AdministratorAccess'):
-                print(i['UserName'])
+                # print(i['UserName'])
+                final_result.append({
+                    'Username':i['UserName']
+                })
+    return json.dumps(final_result,default=str)
 
 
 # main function
 def main():
+    # Converted into API
     result = list_users()
-    print(result)
+    # print(result)
 
+    # Converted into API
     diff = list_users_age()
-        
+    
+    # Ignore for now
     generate_csv()
 
+    # Converted into API
     list__policies()
 
+    # Converted into API
     access_key_old()
         
+    # Converted into API    
     mfa_enabled()
 
+    # Converted into API 
     check_adminstration_policy()
     
 if __name__ == "__main__":
-    main()
+    app.run()
+    # main()

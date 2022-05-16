@@ -1,0 +1,5 @@
+Path,UserName,UserId,Arn,CreateDate,PasswordLastUsed
+/,aryan.purohit,AIDA5DAJUXMWGXBRSXAZX,arn:aws:iam::899815881516:user/aryan.purohit,2022-01-10 14:59:45+00:00,
+/,love.purohit,AIDA5DAJUXMWECGZR7RE3,arn:aws:iam::899815881516:user/love.purohit,2021-03-10 16:27:35+00:00,2021-07-20 05:34:47+00:00
+/,rohit.gorana,AIDA5DAJUXMWPSVU72LJ5,arn:aws:iam::899815881516:user/rohit.gorana,2021-03-10 16:26:18+00:00,2021-10-31 06:42:32+00:00
+/,shubham.jain,AIDA5DAJUXMWNBRARSCKM,arn:aws:iam::899815881516:user/shubham.jain,2021-03-10 16:25:30+00:00,2021-07-22 13:41:55+00:00
